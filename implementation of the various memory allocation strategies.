@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+#define MAX_BLOCKS 5
+
+typedef struct {
+    int id, size;
+    bool allocated;
+} Block;
+
+Block memory[MAX_BLOCKS] = {{1, 50, 0}, {2, 100, 0}, {3, 150, 0}, {4, 200, 0}, {5, 300, 0}};
+
+int allocate(int size, int strategy) {
+    int best = -1, worst = -1, min_diff = 9999, max_diff = -1;
+    for (int i = 0; i < MAX_BLOCKS; i++) {
+        if (!memory[i].allocated && memory[i].size >= size) {
+            if (strategy == 1) { // First Fit
+                memory[i].allocated = 1;
+                return i;
+            }
+            int diff = memory[i].size - size;
+            if (strategy == 2 && diff < min_diff) { // Best Fit
+                min_diff = diff;
+                best = i;
+            }
+            if (strategy == 3 && diff > max_diff) { // Worst Fit
+                max_diff = diff;
+                worst = i;
+            }
+        }
+    }
+    if (best != -1) { memory[best].allocated = 1; return best; }
+    if (worst != -1) { memory[worst].allocated = 1; return worst; }
+    return -1;
+}
+
+void deallocate(int id) {
+    memory[id].allocated = 0;
+}
+
+int main() {
+    int choice, size, id;
+    while (1) {
+        printf("\n1. First Fit\n2. Best Fit\n3. Worst Fit\n4. Deallocate\n5. Exit\nChoice: ");
+        scanf("%d", &choice);
+        if (choice == 5) break;
+        printf("Enter memory size: ");
+        scanf("%d", &size);
+        if (choice == 4) {
+            printf("Enter block id to deallocate: ");
+            scanf("%d", &id);
+            deallocate(id - 1);
+        } else {
+            id = allocate(size, choice);
+            if (id != -1)
+                printf("Allocated %d units in block %d.\n", size, memory[id].id);
+            else
+                printf("Not enough memory.\n");
+        }
+    }
+    return 0;
+}
