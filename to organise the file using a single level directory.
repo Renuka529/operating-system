@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_FILES 5
+#define MAX_FILENAME 50
+
+// Directory structure with a list of files
+char directory[MAX_FILES][MAX_FILENAME];
+int file_count = 0;
+
+// Function to add a file to the directory
+void add_file(char *filename) {
+    if (file_count < MAX_FILES) {
+        strcpy(directory[file_count], filename);
+        file_count++;
+        printf("File '%s' added successfully.\n", filename);
+    } else {
+        printf("Directory is full, cannot add more files.\n");
+    }
+}
+
+// Function to list all files in the directory
+void list_files() {
+    if (file_count == 0) {
+        printf("No files in the directory.\n");
+    } else {
+        printf("Files in the directory:\n");
+        for (int i = 0; i < file_count; i++) {
+            printf("%d. %s\n", i + 1, directory[i]);
+        }
+    }
+}
+
+// Function to delete a file from the directory
+void delete_file(char *filename) {
+    int found = 0;
+    for (int i = 0; i < file_count; i++) {
+        if (strcmp(directory[i], filename) == 0) {
+            found = 1;
+            // Shift the files to remove the deleted one
+            for (int j = i; j < file_count - 1; j++) {
+                strcpy(directory[j], directory[j + 1]);
+            }
+            file_count--;
+            printf("File '%s' deleted successfully.\n", filename);
+            break;
+        }
+    }
+    if (!found) {
+        printf("File '%s' not found in the directory.\n", filename);
+    }
+}
+
+int main() {
+    int choice;
+    char filename[MAX_FILENAME];
+
+    while (1) {
+        printf("\nSingle-Level Directory Operations\n");
+        printf("1. Add File\n");
+        printf("2. List Files\n");
+        printf("3. Delete File\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar(); // To consume newline character left by scanf
+
+        switch (choice) {
+            case 1:
+                printf("Enter filename to add: ");
+                fgets(filename, sizeof(filename), stdin);
+                filename[strcspn(filename, "\n")] = '\0'; // Remove newline character
+                add_file(filename);
+                break;
+            case 2:
+                list_files();
+                break;
+            case 3:
+                printf("Enter filename to delete: ");
+                fgets(filename, sizeof(filename), stdin);
+                filename[strcspn(filename, "\n")] = '\0'; // Remove newline character
+                delete_file(filename);
+                break;
+            case 4:
+                printf("Exiting...\n");
+                return 0;
+            default:
+                printf("Invalid choice, try again.\n");
+        }
+    }
+}
