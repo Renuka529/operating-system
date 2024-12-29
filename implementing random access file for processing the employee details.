@@ -1,0 +1,116 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Define the Employee structure
+struct Employee {
+    int id;
+    char name[50];
+    float salary;
+};
+
+// Function to add employee details to the file
+void add_employee(FILE *file, int pos) {
+    struct Employee emp;
+    
+    // Move the file pointer to the specific position for random access
+    fseek(file, pos * sizeof(struct Employee), SEEK_SET);
+
+    // Get employee details from the user
+    printf("Enter employee ID: ");
+    scanf("%d", &emp.id);
+    getchar();  // to consume the newline character left by scanf
+    printf("Enter employee name: ");
+    fgets(emp.name, sizeof(emp.name), stdin);
+    emp.name[strcspn(emp.name, "\n")] = '\0';  // Remove newline character
+    printf("Enter employee salary: ");
+    scanf("%f", &emp.salary);
+
+    // Write the employee details to the file
+    fwrite(&emp, sizeof(struct Employee), 1, file);
+    printf("Employee details added successfully.\n");
+}
+
+// Function to display employee details from the file
+void display_employee(FILE *file, int pos) {
+    struct Employee emp;
+
+    // Move the file pointer to the specific position
+    fseek(file, pos * sizeof(struct Employee), SEEK_SET);
+
+    // Read employee details from the file
+    fread(&emp, sizeof(struct Employee), 1, file);
+
+    // Display the employee details
+    printf("\nEmployee ID: %d\n", emp.id);
+    printf("Employee Name: %s\n", emp.name);
+    printf("Employee Salary: %.2f\n", emp.salary);
+}
+
+// Function to update employee details
+void update_employee(FILE *file, int pos) {
+    struct Employee emp;
+    
+    // Move the file pointer to the specific position
+    fseek(file, pos * sizeof(struct Employee), SEEK_SET);
+
+    // Get updated employee details from the user
+    printf("Enter new employee ID: ");
+    scanf("%d", &emp.id);
+    getchar();  // to consume the newline character
+    printf("Enter new employee name: ");
+    fgets(emp.name, sizeof(emp.name), stdin);
+    emp.name[strcspn(emp.name, "\n")] = '\0';  // Remove newline character
+    printf("Enter new employee salary: ");
+    scanf("%f", &emp.salary);
+
+    // Write the updated employee details to the file
+    fseek(file, pos * sizeof(struct Employee), SEEK_SET);
+    fwrite(&emp, sizeof(struct Employee), 1, file);
+    printf("Employee details updated successfully.\n");
+}
+
+int main() {
+    FILE *file;
+    int choice, pos;
+
+    // Open the file in read-write mode, create it if it doesn't exist
+    file = fopen("employee.dat", "r+b");
+    if (file == NULL) {
+        file = fopen("employee.dat", "w+b");  // Create the file if it doesn't exist
+        if (file == NULL) {
+            printf("Failed to open the file.\n");
+            return 1;
+        }
+    }
+
+    while (1) {
+        printf("\n1. Add Employee\n2. Display Employee\n3. Update Employee\n4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter position (0-based) to add employee: ");
+                scanf("%d", &pos);
+                add_employee(file, pos);
+                break;
+            case 2:
+                printf("Enter position (0-based) to display employee: ");
+                scanf("%d", &pos);
+                display_employee(file, pos);
+                break;
+            case 3:
+                printf("Enter position (0-based) to update employee: ");
+                scanf("%d", &pos);
+                update_employee(file, pos);
+                break;
+            case 4:
+                fclose(file);
+                printf("Exiting program.\n");
+                return 0;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    }
+}
