@@ -1,0 +1,70 @@
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <string.h>
+
+#define SHM_SIZE 1024 // Define shared memory size
+#define SHM_KEY 1234  // Define shared memory key
+
+int main() {
+    int shmid;
+    char *shm;
+    pid_t pid;
+
+    // Create shared memory segment
+    shmid = shmget(SHM_KEY, SHM_SIZE, 0666 | IPC_CREAT);
+    if (shmid == -1) {
+        perror("shmget failed");
+        return 1;
+    }
+
+    // Fork to create a child process (Consumer)
+    pid = fork();
+
+    if (pid < 0) {
+        perror("Fork failed");
+        return 1;
+    }
+
+    if (pid > 0) {  // Parent Process (Producer)
+        // Attach the shared memory segment to the parent's address space
+        shm = shmat(shmid, NULL, 0);
+        if (shm == (char *)-1) {
+            perror("shmat failed");
+            return 1;
+        }
+
+        // Write data to shared memory (Producer)
+        printf("Producer: Writing to shared memory\n");
+        sprintf(shm, "Hello from Producer!");
+
+        // Detach the shared memory segment
+        shmdt(shm);
+        printf("Producer: Data written to shared memory\n");
+
+        // Wait for the child process (Consumer) to finish
+        wait(NULL);
+
+        // Remove the shared memory segment after both processes are done
+        shmctl(shmid, IPC_RMID, NULL);
+    }
+    else {  // Child Process (Consumer)
+        // Attach the shared memory segment to the child's address space
+        shm = shmat(shmid, NULL, 0);
+        if (shm == (char *)-1) {
+            perror("shmat failed");
+            return 1;
+        }
+
+        // Read data from shared memory (Consumer)
+        printf("Consumer: Reading from shared memory\n");
+        printf("Data read by Consumer: %s\n", shm);
+
+        // Detach the shared memory segment
+        shmdt(shm);
+        printf("Consumer: Data read and detached from shared memory\n");
+    }
+
+    return 0;
+}
