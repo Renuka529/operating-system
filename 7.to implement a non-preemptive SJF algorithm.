@@ -1,0 +1,68 @@
+#include <stdio.h>
+
+typedef struct {
+    int pid, bt, wt, tat;
+} Process;
+
+void sort(Process p[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (p[i].bt > p[j].bt) {
+                Process temp = p[i];
+                p[i] = p[j];
+                p[j] = temp;
+            }
+        }
+    }
+}
+
+void calculateWaitingTime(Process p[], int n) {
+    p[0].wt = 0; // First process has no waiting time
+    for (int i = 1; i < n; i++) {
+        p[i].wt = p[i - 1].wt + p[i - 1].bt; // Waiting time of process i
+    }
+}
+
+void calculateTurnaroundTime(Process p[], int n) {
+    for (int i = 0; i < n; i++) {
+        p[i].tat = p[i].bt + p[i].wt; // Turnaround time = Burst time + Waiting time
+    }
+}
+
+void printResult(Process p[], int n) {
+    int total_wt = 0, total_tat = 0;
+    printf("\nPID\tBurst Time\tWaiting Time\tTurnaround Time\n");
+    for (int i = 0; i < n; i++) {
+        total_wt += p[i].wt;
+        total_tat += p[i].tat;
+        printf("%d\t%d\t\t%d\t\t%d\n", p[i].pid, p[i].bt, p[i].wt, p[i].tat);
+    }
+    printf("\nAverage Waiting Time: %.2f\n", (float)total_wt / n);
+    printf("Average Turnaround Time: %.2f\n", (float)total_tat / n);
+}
+
+int main() {
+    int n;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+    
+    Process p[n];
+    
+    for (int i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+        printf("Enter burst time for process %d: ", i + 1);
+        scanf("%d", &p[i].bt);
+    }
+
+    // Sort processes based on burst time (Shortest job first)
+    sort(p, n);
+
+    // Calculate waiting and turnaround times
+    calculateWaitingTime(p, n);
+    calculateTurnaroundTime(p, n);
+
+    // Print the results
+    printResult(p, n);
+
+    return 0;
+}
